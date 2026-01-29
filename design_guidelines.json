@@ -1,0 +1,133 @@
+{
+  "identity": {
+    "persona": "E1: The Anti-AI Designer",
+    "mission": "Create a mental wellness platform that feels like a warm hug, not a clinical tool. Reject cold tech aesthetics.",
+    "principles": [
+      "Fusion: Botanical illustrations x Modern SaaS layout",
+      "Emotion: Every pixel must whisper 'calm' and 'safety'",
+      "Texture: Use grain and paper textures to kill digital flatness",
+      "Typography: Expressive serif headings vs clean sans body"
+    ]
+  },
+  "typography": {
+    "font_family": {
+      "heading": "Fraunces, serif",
+      "body": "Manrope, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "import_url": "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&family=Manrope:wght@200..800&display=swap",
+    "rules": [
+      "Headings (h1-h3) must use Fraunces. Use lighter weights (300-400) for elegance, or italic variants for emphasis.",
+      "Body text must use Manrope. Keep line-height loose (1.6-1.8) for readability.",
+      "Never use Inter for headings.",
+      "Use 'tracking-tight' for large headings to make them feel cohesive."
+    ]
+  },
+  "colors": {
+    "theme": "light",
+    "palette": {
+      "background": "#F4F1DE",
+      "foreground": "#3D405B",
+      "primary": "#E07A5F",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#81B29A",
+      "secondary_foreground": "#FFFFFF",
+      "accent": "#F2CC8F",
+      "accent_foreground": "#3D405B",
+      "muted": "#F9F7F0",
+      "muted_foreground": "#7A7C85",
+      "card": "#FFFFFF",
+      "card_foreground": "#3D405B",
+      "border": "#EAE0D5",
+      "input": "#EAE0D5",
+      "ring": "#E07A5F"
+    },
+    "tailwind_config_extension": {
+      "colors": {
+        "cream": "#F4F1DE",
+        "terracotta": "#E07A5F",
+        "sage": "#81B29A",
+        "sun": "#F2CC8F",
+        "deep-navy": "#3D405B"
+      }
+    },
+    "usage_rules": [
+      "Background should be 'cream' (#F4F1DE), not pure white.",
+      "Text should be 'deep-navy' (#3D405B), never pure black.",
+      "Use 'terracotta' for primary CTAs.",
+      "Use 'sage' for success states and calming elements.",
+      "Use 'sun' for highlights and playful accents."
+    ]
+  },
+  "layout": {
+    "spacing": {
+      "base": "Generous. Use p-8 to p-12 for section padding.",
+      "containers": "Rounded corners are mandatory. Use rounded-2xl or rounded-3xl."
+    },
+    "grid_system": {
+      "marketing": "Bento Grid (Mode A). Asymmetric layouts. Mix text blocks with image blocks.",
+      "dashboard": "High Density Grid (Mode B). Clean, organized, but with soft edges."
+    },
+    "z_index_strategy": "Layered depth. Use soft shadows and subtle borders to create lift."
+  },
+  "components": {
+    "buttons": {
+      "style": "Pill-shaped (rounded-full).",
+      "interaction": "Scale down slightly on click (active:scale-95). Hover: brightness-110.",
+      "shadow": "Soft, colored shadow matching the button color (e.g., shadow-terracotta/20)."
+    },
+    "cards": {
+      "style": "White background with very subtle border (border-stone-100).",
+      "shadow": "shadow-lg but very diffuse (shadow-stone-200/50).",
+      "hover": "Lift up (-translate-y-1) and increase shadow intensity."
+    },
+    "inputs": {
+      "style": "Soft background (#F9F7F0), no harsh borders. Focus ring should be 'terracotta'."
+    },
+    "navigation": {
+      "style": "Floating glassmorphism header. Backdrop-blur-md, bg-white/50.",
+      "position": "Sticky top-4 mx-4 rounded-full border border-white/20 shadow-sm."
+    }
+  },
+  "visual_enhancers": {
+    "texture": "Add a subtle noise texture overlay to the entire body (opacity 0.03) to remove digital sterility.",
+    "gradients": "Use soft, organic gradients (mesh gradients) for backgrounds, not linear gradients.",
+    "icons": "Use Phosphor Icons (Duotone) or Heroicons (Outline) with soft stroke widths."
+  },
+  "images": {
+    "hero_bg": {
+      "url": "https://images.unsplash.com/photo-1632653859951-7d52ea5498ef?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzJ8MHwxfHNlYXJjaHwxfHxjYWxtJTIwd29tYW4lMjBtZWRpdGF0aW5nJTIwc3VubGlnaHQlMjBuYXR1cmV8ZW58MHx8fHwxNzY5NzEzNDkyfDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Woman meditating in sunlight",
+      "usage": "Hero section background or main visual"
+    },
+    "community": {
+      "url": "https://images.unsplash.com/photo-1758272134196-1ab895629bce?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxoYXBweSUyMGRpdmVyc2UlMjBmcmllbmRzJTIwdGFsa2luZyUyMG91dGRvb3JzJTIwd2FybSUyMGxpZ2h0fGVufDB8fHx8MTc2OTcxMzQ5NXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Diverse friends talking on rooftop",
+      "usage": "Community or About section"
+    },
+    "blog_header": {
+      "url": "https://images.unsplash.com/photo-1768335796369-ec98f204503b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzR8MHwxfHNlYXJjaHwxfHxjb3p5JTIwam91cm5hbGluZyUyMGNvZmZlZSUyMGFlc3RoZXRpY3xlbnwwfHx8fDE3Njk3MTM0OTd8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Journaling with coffee",
+      "usage": "Blog page header or featured post"
+    },
+    "video_thumbnails": [
+      "https://images.unsplash.com/photo-1749113351389-6db64f92c1fe?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzJ8MHwxfHNlYXJjaHwyfHxjYWxtJTIwd29tYW4lMjBtZWRpdGF0aW5nJTIwc3VubGlnaHQlMjBuYXR1cmV8ZW58MHx8fHwxNzY5NzEzNDkyfDA&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1769238507274-59e0db6c6bbe?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzJ8MHwxfHNlYXJjaHw0fHxjYWxtJTIwd29tYW4lMjBtZWRpdGF0aW5nJTIwc3VubGlnaHQlMjBuYXR1cmV8ZW58MHx8fHwxNzY5NzEzNDkyfDA&ixlib=rb-4.1.0&q=85"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALL FONTS: Add the Google Fonts import to index.css immediately.",
+    "2. CONFIGURE TAILWIND: Update tailwind.config.js with the custom colors and font families.",
+    "3. OVERRIDE SHADCN: Modify the base styles in index.css to match the 'cream' background and 'deep-navy' text.",
+    "4. CREATE LAYOUT: Build a 'Layout' component that includes the floating navigation and applies the global texture overlay.",
+    "5. USE IMAGES: Use the provided Unsplash URLs for placeholders. Do not use gray boxes.",
+    "6. DATA-TESTID: Ensure every interactive element has a data-testid attribute."
+  ],
+  "universal_guidelines": [
+    "Avoid 'AI slop' aesthetics (generic centered layouts, default blues).",
+    "Do not use gradients for text unless specifically requested.",
+    "Use glassmorphism for overlays (backdrop-blur-md).",
+    "Add micro-interactions to everything (hover, focus, active).",
+    "Use 'sonner' for toasts."
+  ]
+}
