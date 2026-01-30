@@ -74,6 +74,110 @@ const AdminPanel = ({ auth }) => {
     return headers;
   };
 
+  // Cloudinary upload handler
+  const uploadToCloudinary = async (file, resourceType = 'video', folder = 'videos') => {
+    try {
+      // Get signature from backend
+      const headers = {};
+      if (auth.token) {
+        headers['Authorization'] = `Bearer ${auth.token}`;
+      }
+      
+      const sigResponse = await fetch(`${API}/cloudinary/signature?resource_type=${resourceType}&folder=${folder}`, {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!sigResponse.ok) throw new Error('Failed to get upload signature');
+      const sigData = await sigResponse.json();
+      
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('api_key', sigData.api_key);
+      formData.append('timestamp', sigData.timestamp);
+      formData.append('signature', sigData.signature);
+      formData.append('folder', sigData.folder);
+      
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${sigData.cloud_name}/${resourceType}/upload`;
+      
+      const xhr = new XMLHttpRequest();
+      
+      return new Promise((resolve, reject) => {
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const progress = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(progress);
+          }
+        });
+        
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const result = JSON.parse(xhr.responseText);
+            resolve(result.secure_url);
+          } else {
+            reject(new Error('Upload failed'));
+          }
+        });
+        
+        xhr.addEventListener('error', () => reject(new Error('Upload failed')));
+        
+        xhr.open('POST', uploadUrl);
+        xhr.send(formData);
+      });
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please select a video file');
+      return;
+    }
+    
+    setUploadingVideo(true);
+    setUploadProgress(0);
+    
+    try {
+      const url = await uploadToCloudinary(file, 'video', 'videos');
+      setVideoForm({ ...videoForm, video_url: url });
+      toast.success('Video uploaded successfully!');
+    } catch (error) {
+      toast.error('Failed to upload video: ' + error.message);
+    } finally {
+      setUploadingVideo(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleThumbnailUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    
+    setUploadingThumbnail(true);
+    setUploadProgress(0);
+    
+    try {
+      const url = await uploadToCloudinary(file, 'image', 'thumbnails');
+      setVideoForm({ ...videoForm, thumbnail_url: url });
+      toast.success('Thumbnail uploaded successfully!');
+    } catch (error) {
+      toast.error('Failed to upload thumbnail: ' + error.message);
+    } finally {
+      setUploadingThumbnail(false);
+      setUploadProgress(0);
+    }
+  };
+
   // Video handlers
   const handleCreateVideo = async (e) => {
     e.preventDefault();
