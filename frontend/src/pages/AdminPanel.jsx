@@ -379,13 +379,82 @@ const AdminPanel = ({ auth }) => {
                       <Label>Category</Label>
                       <Input value={videoForm.category} onChange={(e) => setVideoForm({...videoForm, category: e.target.value})} required />
                     </div>
-                    <div>
-                      <Label>Thumbnail URL</Label>
-                      <Input value={videoForm.thumbnail_url} onChange={(e) => setVideoForm({...videoForm, thumbnail_url: e.target.value})} required />
+                    <div className="md:col-span-2">
+                      <Label>Video File</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input 
+                          value={videoForm.video_url} 
+                          onChange={(e) => setVideoForm({...videoForm, video_url: e.target.value})} 
+                          placeholder="Video URL or upload a file"
+                          required 
+                        />
+                        <input
+                          type="file"
+                          ref={videoInputRef}
+                          onChange={handleVideoUpload}
+                          accept="video/*"
+                          className="hidden"
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => videoInputRef.current?.click()}
+                          disabled={uploadingVideo}
+                          className="flex-shrink-0"
+                        >
+                          {uploadingVideo ? (
+                            <span>{uploadProgress}%</span>
+                          ) : (
+                            <>
+                              <Cloud className="w-4 h-4 mr-1" />
+                              Upload
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      {uploadingVideo && (
+                        <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-terracotta transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <Label>Video URL</Label>
-                      <Input value={videoForm.video_url} onChange={(e) => setVideoForm({...videoForm, video_url: e.target.value})} required />
+                    <div className="md:col-span-2">
+                      <Label>Thumbnail</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input 
+                          value={videoForm.thumbnail_url} 
+                          onChange={(e) => setVideoForm({...videoForm, thumbnail_url: e.target.value})} 
+                          placeholder="Thumbnail URL or upload an image"
+                          required 
+                        />
+                        <input
+                          type="file"
+                          ref={thumbnailInputRef}
+                          onChange={handleThumbnailUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => thumbnailInputRef.current?.click()}
+                          disabled={uploadingThumbnail}
+                          className="flex-shrink-0"
+                        >
+                          {uploadingThumbnail ? 'Uploading...' : (
+                            <>
+                              <Upload className="w-4 h-4 mr-1" />
+                              Upload
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      {videoForm.thumbnail_url && (
+                        <img src={videoForm.thumbnail_url} alt="Thumbnail preview" className="mt-2 h-20 rounded-lg object-cover" />
+                      )}
                     </div>
                     <div>
                       <Label>Price ($)</Label>
