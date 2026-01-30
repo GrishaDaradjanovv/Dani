@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, User, LogOut, BookOpen, Video, LayoutDashboard, ShoppingBag, Shield, Mic, Heart, UserCircle, Flower2, Brain } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, BookOpen, Video, LayoutDashboard, ShoppingBag, Shield, Mic, Heart, UserCircle, Flower2, Brain, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { API } from '@/App';
 
 // Sidebar navigation items
 const sidebarItems = [
