@@ -419,6 +419,415 @@ async def logout(request: Request, response: Response):
     response.delete_cookie("session_token", path="/")
     return {"message": "Logged out successfully"}
 
+# ============== PASSWORD RESET ENDPOINTS ==============
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(data: PasswordResetRequest, request: Request):
+    user = await db.users.find_one({"email": data.email}, {"_id": 0})
+    if not user:
+        # Don't reveal if email exists
+        return {"message": "If the email exists, a reset link has been sent"}
+    
+    # Generate reset token
+    reset_token = f"rst_{uuid.uuid4().hex}"
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    
+    await db.password_resets.insert_one({
+        "token": reset_token,
+        "user_id": user["user_id"],
+        "email": data.email,
+        "expires_at": expires_at.isoformat(),
+        "used": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Get origin from request headers
+    origin = request.headers.get("origin", "https://example.com")
+    reset_link = f"{origin}/reset-password?token={reset_token}"
+    
+    # Send email via Resend
+    try:
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #3D405B; margin: 0;">WellnessHub</h1>
+            </div>
+            <h2 style="color: #3D405B;">Reset Your Password</h2>
+            <p style="color: #666; line-height: 1.6;">
+                Hi {user['name']},<br><br>
+                We received a request to reset your password. Click the button below to create a new password:
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{reset_link}" style="background-color: #E07A5F; color: white; padding: 14px 28px; text-decoration: none; border-radius: 25px; font-weight: bold;">
+                    Reset Password
+                </a>
+            </div>
+            <p style="color: #999; font-size: 14px;">
+                This link will expire in 1 hour. If you didn't request this, you can safely ignore this email.
+            </p>
+        </div>
+        """
+        
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [data.email],
+            "subject": "Reset Your WellnessHub Password",
+            "html": html_content
+        }
+        
+        await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Password reset email sent to {data.email}")
+    except Exception as e:
+        logger.error(f"Failed to send password reset email: {e}")
+    
+    return {"message": "If the email exists, a reset link has been sent"}
+
+@api_router.post("/auth/reset-password")
+async def reset_password(data: PasswordResetConfirm):
+    reset = await db.password_resets.find_one({"token": data.token, "used": False}, {"_id": 0})
+    if not reset:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    expires_at = datetime.fromisoformat(reset["expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if datetime.now(timezone.utc) > expires_at:
+        raise HTTPException(status_code=400, detail="Reset token has expired")
+    
+    # Update password
+    new_hash = hash_password(data.new_password)
+    await db.users.update_one(
+        {"user_id": reset["user_id"]},
+        {"$set": {"password_hash": new_hash}}
+    )
+    
+    # Mark token as used
+    await db.password_resets.update_one(
+        {"token": data.token},
+        {"$set": {"used": True}}
+    )
+    
+    return {"message": "Password reset successfully"}
+
+# ============== CART ENDPOINTS ==============
+
+@api_router.get("/cart", response_model=List[CartItemResponse])
+async def get_cart(user: dict = Depends(require_auth)):
+    cart_items = await db.cart.find({"user_id": user["user_id"]}, {"_id": 0}).to_list(100)
+    
+    result = []
+    for item in cart_items:
+        if item["item_type"] == "video":
+            video = await db.videos.find_one({"video_id": item["item_id"]}, {"_id": 0})
+            if video:
+                result.append(CartItemResponse(
+                    cart_item_id=item["cart_item_id"],
+                    item_type="video",
+                    item_id=video["video_id"],
+                    name=video["title"],
+                    price=video["price"],
+                    quantity=1,
+                    image_url=video["thumbnail_url"],
+                    category=video["category"]
+                ))
+        elif item["item_type"] == "shop":
+            shop_item = await db.shop_items.find_one({"item_id": item["item_id"]}, {"_id": 0})
+            if shop_item:
+                result.append(CartItemResponse(
+                    cart_item_id=item["cart_item_id"],
+                    item_type="shop",
+                    item_id=shop_item["item_id"],
+                    name=shop_item["name"],
+                    price=shop_item["price"],
+                    quantity=item.get("quantity", 1),
+                    image_url=shop_item["image_url"],
+                    category=shop_item["category"]
+                ))
+    
+    return result
+
+@api_router.post("/cart/add")
+async def add_to_cart(cart_item: CartItem, user: dict = Depends(require_auth)):
+    # Check if item exists
+    if cart_item.item_type == "video":
+        item = await db.videos.find_one({"video_id": cart_item.item_id}, {"_id": 0})
+        if not item:
+            raise HTTPException(status_code=404, detail="Video not found")
+        # Check if already purchased
+        purchase = await db.purchases.find_one({
+            "user_id": user["user_id"],
+            "video_id": cart_item.item_id,
+            "status": "completed"
+        }, {"_id": 0})
+        if purchase:
+            raise HTTPException(status_code=400, detail="Video already purchased")
+    elif cart_item.item_type == "shop":
+        item = await db.shop_items.find_one({"item_id": cart_item.item_id}, {"_id": 0})
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        if item["stock"] < cart_item.quantity:
+            raise HTTPException(status_code=400, detail="Not enough stock")
+    else:
+        raise HTTPException(status_code=400, detail="Invalid item type")
+    
+    # Check if already in cart
+    existing = await db.cart.find_one({
+        "user_id": user["user_id"],
+        "item_type": cart_item.item_type,
+        "item_id": cart_item.item_id
+    }, {"_id": 0})
+    
+    if existing:
+        if cart_item.item_type == "shop":
+            # Update quantity for shop items
+            await db.cart.update_one(
+                {"cart_item_id": existing["cart_item_id"]},
+                {"$set": {"quantity": existing.get("quantity", 1) + cart_item.quantity}}
+            )
+        return {"message": "Item already in cart", "cart_item_id": existing["cart_item_id"]}
+    
+    cart_item_id = f"cart_{uuid.uuid4().hex[:12]}"
+    cart_doc = {
+        "cart_item_id": cart_item_id,
+        "user_id": user["user_id"],
+        "item_type": cart_item.item_type,
+        "item_id": cart_item.item_id,
+        "quantity": cart_item.quantity if cart_item.item_type == "shop" else 1,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.cart.insert_one(cart_doc)
+    
+    return {"message": "Item added to cart", "cart_item_id": cart_item_id}
+
+@api_router.put("/cart/{cart_item_id}")
+async def update_cart_item(cart_item_id: str, quantity: int, user: dict = Depends(require_auth)):
+    cart_item = await db.cart.find_one({
+        "cart_item_id": cart_item_id,
+        "user_id": user["user_id"]
+    }, {"_id": 0})
+    
+    if not cart_item:
+        raise HTTPException(status_code=404, detail="Cart item not found")
+    
+    if cart_item["item_type"] == "video":
+        raise HTTPException(status_code=400, detail="Cannot change video quantity")
+    
+    if quantity <= 0:
+        await db.cart.delete_one({"cart_item_id": cart_item_id})
+        return {"message": "Item removed from cart"}
+    
+    # Check stock
+    shop_item = await db.shop_items.find_one({"item_id": cart_item["item_id"]}, {"_id": 0})
+    if shop_item and shop_item["stock"] < quantity:
+        raise HTTPException(status_code=400, detail="Not enough stock")
+    
+    await db.cart.update_one(
+        {"cart_item_id": cart_item_id},
+        {"$set": {"quantity": quantity}}
+    )
+    
+    return {"message": "Cart updated"}
+
+@api_router.delete("/cart/{cart_item_id}")
+async def remove_from_cart(cart_item_id: str, user: dict = Depends(require_auth)):
+    result = await db.cart.delete_one({
+        "cart_item_id": cart_item_id,
+        "user_id": user["user_id"]
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Cart item not found")
+    
+    return {"message": "Item removed from cart"}
+
+@api_router.delete("/cart")
+async def clear_cart(user: dict = Depends(require_auth)):
+    await db.cart.delete_many({"user_id": user["user_id"]})
+    return {"message": "Cart cleared"}
+
+@api_router.post("/cart/checkout", response_model=CheckoutResponse)
+async def checkout_cart(checkout_data: CartCheckoutRequest, request: Request, user: dict = Depends(require_auth)):
+    from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+    
+    cart_items = await db.cart.find({"user_id": user["user_id"]}, {"_id": 0}).to_list(100)
+    if not cart_items:
+        raise HTTPException(status_code=400, detail="Cart is empty")
+    
+    # Calculate total and check items
+    total_amount = 0.0
+    has_physical = False
+    video_ids = []
+    shop_items_data = []
+    
+    for item in cart_items:
+        if item["item_type"] == "video":
+            video = await db.videos.find_one({"video_id": item["item_id"]}, {"_id": 0})
+            if video:
+                total_amount += float(video["price"])
+                video_ids.append(item["item_id"])
+        elif item["item_type"] == "shop":
+            shop_item = await db.shop_items.find_one({"item_id": item["item_id"]}, {"_id": 0})
+            if shop_item:
+                quantity = item.get("quantity", 1)
+                total_amount += float(shop_item["price"]) * quantity
+                has_physical = True
+                shop_items_data.append({
+                    "item_id": item["item_id"],
+                    "name": shop_item["name"],
+                    "quantity": quantity,
+                    "price": shop_item["price"]
+                })
+    
+    # Require shipping for physical items
+    if has_physical and not checkout_data.shipping_address:
+        raise HTTPException(status_code=400, detail="Shipping address required for physical items")
+    
+    api_key = os.environ.get("STRIPE_API_KEY")
+    host_url = str(request.base_url).rstrip("/")
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+    
+    success_url = f"{checkout_data.origin_url}/cart/success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{checkout_data.origin_url}/cart"
+    
+    # Create order ID for tracking
+    order_id = f"ord_{uuid.uuid4().hex[:12]}"
+    
+    checkout_request = CheckoutSessionRequest(
+        amount=total_amount,
+        currency="usd",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "type": "cart",
+            "order_id": order_id,
+            "user_id": user["user_id"],
+            "video_ids": ",".join(video_ids) if video_ids else "",
+            "has_physical": str(has_physical)
+        }
+    )
+    
+    session = await stripe_checkout.create_checkout_session(checkout_request)
+    
+    # Create order record
+    order_doc = {
+        "order_id": order_id,
+        "session_id": session.session_id,
+        "user_id": user["user_id"],
+        "video_ids": video_ids,
+        "shop_items": shop_items_data,
+        "shipping_address": checkout_data.shipping_address.model_dump() if checkout_data.shipping_address else None,
+        "total_amount": total_amount,
+        "status": "pending",
+        "payment_status": "initiated",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.cart_orders.insert_one(order_doc)
+    
+    # Create payment transaction
+    await db.payment_transactions.insert_one({
+        "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
+        "session_id": session.session_id,
+        "user_id": user["user_id"],
+        "type": "cart",
+        "order_id": order_id,
+        "amount": total_amount,
+        "currency": "usd",
+        "status": "pending",
+        "payment_status": "initiated",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return CheckoutResponse(url=session.url, session_id=session.session_id)
+
+@api_router.get("/cart/order/{session_id}")
+async def get_cart_order_status(session_id: str, request: Request, user: dict = Depends(require_auth)):
+    from emergentintegrations.payments.stripe.checkout import StripeCheckout
+    
+    api_key = os.environ.get("STRIPE_API_KEY")
+    host_url = str(request.base_url).rstrip("/")
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+    status = await stripe_checkout.get_checkout_status(session_id)
+    
+    order = await db.cart_orders.find_one({"session_id": session_id}, {"_id": 0})
+    if order and order["payment_status"] != "paid" and status.payment_status == "paid":
+        # Process the order
+        await db.cart_orders.update_one(
+            {"session_id": session_id},
+            {"$set": {"status": "paid", "payment_status": "paid"}}
+        )
+        
+        # Create purchases for videos
+        for video_id in order.get("video_ids", []):
+            existing = await db.purchases.find_one({
+                "user_id": order["user_id"],
+                "video_id": video_id,
+                "status": "completed"
+            }, {"_id": 0})
+            if not existing:
+                await db.purchases.insert_one({
+                    "purchase_id": f"pur_{uuid.uuid4().hex[:12]}",
+                    "user_id": order["user_id"],
+                    "video_id": video_id,
+                    "session_id": session_id,
+                    "status": "completed",
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+        
+        # Create shop orders
+        if order.get("shop_items"):
+            await db.orders.insert_one({
+                "order_id": order["order_id"],
+                "user_id": order["user_id"],
+                "items": order["shop_items"],
+                "shipping_address": order["shipping_address"],
+                "total_amount": sum(i["price"] * i["quantity"] for i in order["shop_items"]),
+                "status": "paid",
+                "session_id": session_id,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # Clear cart
+        await db.cart.delete_many({"user_id": order["user_id"]})
+    
+    return {"status": status.status, "payment_status": status.payment_status}
+
+# ============== CLOUDINARY ENDPOINTS ==============
+
+@api_router.get("/cloudinary/signature")
+async def get_cloudinary_signature(
+    resource_type: str = Query("video", enum=["image", "video"]),
+    folder: str = Query("videos"),
+    user: dict = Depends(require_admin)
+):
+    ALLOWED_FOLDERS = ("videos/", "images/", "thumbnails/")
+    if not any(folder.startswith(f) or folder == f.rstrip("/") for f in ALLOWED_FOLDERS):
+        raise HTTPException(status_code=400, detail="Invalid folder path")
+    
+    timestamp = int(time.time())
+    params = {
+        "timestamp": timestamp,
+        "folder": folder
+    }
+    
+    signature = cloudinary.utils.api_sign_request(
+        params,
+        os.environ.get("CLOUDINARY_API_SECRET")
+    )
+    
+    return {
+        "signature": signature,
+        "timestamp": timestamp,
+        "cloud_name": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        "api_key": os.environ.get("CLOUDINARY_API_KEY"),
+        "folder": folder,
+        "resource_type": resource_type
+    }
+
 # ============== VIDEO ENDPOINTS ==============
 
 @api_router.get("/videos", response_model=List[VideoResponse])
