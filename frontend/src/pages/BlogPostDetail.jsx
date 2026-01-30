@@ -78,6 +78,26 @@ const BlogPostDetail = ({ auth }) => {
     }
   };
 
+  const handleDeleteComment = async (commentId) => {
+    if (!confirm('Are you sure you want to delete this comment?')) return;
+    try {
+      const headers = {};
+      if (auth.token) {
+        headers['Authorization'] = `Bearer ${auth.token}`;
+      }
+      const response = await fetch(`${API}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers,
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete comment');
+      setComments(comments.filter(c => c.comment_id !== commentId));
+      toast.success('Comment deleted');
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
