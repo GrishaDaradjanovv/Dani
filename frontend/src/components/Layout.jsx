@@ -198,6 +198,18 @@ export const Navbar = ({ auth, onMenuClick, cartCount = 0 }) => {
 
         {/* Auth Buttons */}
         <div className="flex items-center gap-3">
+          {/* Cart Icon */}
+          {auth.user && (
+            <Link to="/cart" className="relative p-2 rounded-full hover:bg-cream transition-colors" data-testid="cart-icon">
+              <ShoppingCart className="w-5 h-5 text-deep-navy" />
+              {localCartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-terracotta text-white text-xs flex items-center justify-center font-medium">
+                  {localCartCount}
+                </span>
+              )}
+            </Link>
+          )}
+          
           {auth.loading ? (
             <div className="w-20 h-10 bg-muted rounded-full animate-pulse" />
           ) : auth.user ? (
