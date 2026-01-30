@@ -235,14 +235,25 @@ const ShopItemDetail = ({ auth }) => {
 
             {/* Checkout Button or Form */}
             {item.stock > 0 && !showCheckout && (
-              <Button
-                onClick={() => setShowCheckout(true)}
-                className="w-full bg-terracotta hover:bg-terracotta/90 text-white rounded-full py-6 text-lg shadow-lg shadow-terracotta/20"
-                data-testid="proceed-to-checkout-btn"
-              >
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                Proceed to Checkout
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  onClick={() => setShowCheckout(true)}
+                  className="w-full bg-terracotta hover:bg-terracotta/90 text-white rounded-full py-6 text-lg shadow-lg shadow-terracotta/20"
+                  data-testid="proceed-to-checkout-btn"
+                >
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  Buy Now
+                </Button>
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={addingToCart}
+                  variant="outline"
+                  className="w-full rounded-full py-6 text-lg border-terracotta text-terracotta hover:bg-terracotta/10"
+                  data-testid="add-to-cart-btn"
+                >
+                  {addingToCart ? 'Adding...' : 'Add to Cart'}
+                </Button>
+              </div>
             )}
 
             {/* Shipping Form */}
