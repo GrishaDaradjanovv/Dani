@@ -100,21 +100,23 @@ Create a website for mental/self-improvement care where users can upload videos 
 - [x] Video purchase flow
 - [x] Admin panel
 - [x] Shop with shipping
+- [x] Password reset
+- [x] Shopping cart
+- [x] Cloud video storage
 
 ### P1 (Important)
 - [ ] Email notifications for purchases/orders
-- [ ] Video upload to cloud storage (S3)
-- [ ] Password reset flow
 - [ ] Order tracking notifications
+- [ ] Inventory deduction on purchase
 
 ### P2 (Nice to Have)
 - [ ] Course progress tracking
-- [ ] Inventory management for shop
+- [ ] Wishlist/favorites
 - [ ] Social sharing for blog posts
 - [ ] Newsletter subscription
 
 ## Next Action Items
-1. Add email notifications (SendGrid/Resend) for order confirmations
-2. Integrate cloud storage for actual video file uploads
-3. Add inventory tracking when orders are placed
-4. Implement password reset flow
+1. Add email notifications for order confirmations
+2. Implement inventory tracking when orders are placed
+3. Add course progress tracking
+4. Add wishlist functionality
