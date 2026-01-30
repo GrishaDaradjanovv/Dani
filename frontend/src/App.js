@@ -170,6 +170,20 @@ function AppRouter() {
           <AdminPanel auth={auth} />
         </AdminRoute>
       } />
+      {/* Cart Pages */}
+      <Route path="/cart" element={
+        <ProtectedRoute auth={auth}>
+          <CartPage auth={auth} />
+        </ProtectedRoute>
+      } />
+      <Route path="/cart/success" element={
+        <ProtectedRoute auth={auth}>
+          <CartSuccess auth={auth} />
+        </ProtectedRoute>
+      } />
+      {/* Password Reset */}
+      <Route path="/forgot-password" element={<ForgotPassword auth={auth} />} />
+      <Route path="/reset-password" element={<ResetPassword auth={auth} />} />
     </Routes>
   );
 }
