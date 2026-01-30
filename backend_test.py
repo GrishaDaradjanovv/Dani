@@ -114,6 +114,41 @@ class WellnessPlatformTester:
             else:
                 self.log_test("Video Count Check", False, f"Expected 6+ videos, found {len(videos)}")
         
+        # Test get shop items (should have 5 seeded products)
+        success, items = self.run_test(
+            "Get Shop Items",
+            "GET",
+            "shop/items",
+            200
+        )
+        
+        if success and isinstance(items, list):
+            print(f"   Found {len(items)} shop items")
+            if len(items) >= 5:
+                self.log_test("Shop Items Count Check", True, f"Found {len(items)} items")
+            else:
+                self.log_test("Shop Items Count Check", False, f"Expected 5+ items, found {len(items)}")
+        
+        # Test service pages (should have 5 pages)
+        service_pages = ['speech-therapist', 'womens-circle-rose', 'bio', 'bach-flowers', 'psychology']
+        pages_found = 0
+        
+        for page_id in service_pages:
+            success, page = self.run_test(
+                f"Get Service Page: {page_id}",
+                "GET",
+                f"pages/{page_id}",
+                200
+            )
+            if success:
+                pages_found += 1
+                print(f"   Page '{page_id}': {page.get('title', 'N/A')}")
+        
+        if pages_found == 5:
+            self.log_test("All Service Pages Available", True, f"Found all {pages_found} service pages")
+        else:
+            self.log_test("All Service Pages Available", False, f"Expected 5 pages, found {pages_found}")
+        
         # Test get blog posts
         success, posts = self.run_test(
             "Get Blog Posts",
