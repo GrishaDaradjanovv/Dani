@@ -17,6 +17,10 @@ import ShopItemDetail from "@/pages/ShopItemDetail";
 import ShopOrderSuccess from "@/pages/ShopOrderSuccess";
 import ServicePage from "@/pages/ServicePage";
 import AdminPanel from "@/pages/AdminPanel";
+import CartPage from "@/pages/CartPage";
+import CartSuccess from "@/pages/CartSuccess";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
