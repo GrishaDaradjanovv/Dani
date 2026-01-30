@@ -192,6 +192,34 @@ class PageContent(BaseModel):
     image_url: str
     features: List[dict] = []
 
+# Password Reset Models
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
+
+# Cart Models
+class CartItem(BaseModel):
+    item_type: str  # "video" or "shop"
+    item_id: str
+    quantity: int = 1
+
+class CartItemResponse(BaseModel):
+    cart_item_id: str
+    item_type: str
+    item_id: str
+    name: str
+    price: float
+    quantity: int
+    image_url: str
+    category: str
+
+class CartCheckoutRequest(BaseModel):
+    shipping_address: Optional[ShippingAddress] = None
+    origin_url: str
+
 # ============== HELPERS ==============
 
 def hash_password(password: str) -> str:
