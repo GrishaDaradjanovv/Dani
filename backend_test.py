@@ -182,7 +182,170 @@ class WellnessPlatformTester:
                 200
             )
 
-    def test_user_registration(self):
+    def test_admin_registration(self):
+        """Test admin user registration"""
+        print("\n👑 Testing admin user registration...")
+        
+        admin_user = {
+            "name": "Admin User",
+            "email": self.admin_email,
+            "password": "AdminPass123!"
+        }
+        
+        success, response = self.run_test(
+            "Admin User Registration",
+            "POST",
+            "auth/register",
+            200,
+            data=admin_user
+        )
+        
+        if success and 'token' in response:
+            self.admin_token = response['token']
+            self.admin_user_id = response['user']['user_id']
+            is_admin = response['user'].get('is_admin', False)
+            print(f"   Registered admin: {response['user']['email']}")
+            print(f"   Is admin: {is_admin}")
+            
+            if is_admin:
+                self.log_test("Admin Status Check", True, "User correctly identified as admin")
+            else:
+                self.log_test("Admin Status Check", False, "User not identified as admin")
+            
+            return True
+        else:
+            self.log_test("Admin Registration Token Check", False, "No token in response")
+            return False
+
+    def test_admin_endpoints(self):
+        """Test admin-only endpoints"""
+        print("\n🔐 Testing admin-only endpoints...")
+        
+        if not self.admin_token:
+            self.log_test("Admin Endpoint Tests", False, "No admin token available")
+            return False
+        
+        # Test admin create video
+        video_data = {
+            "title": "Test Admin Video",
+            "description": "Video created by admin for testing",
+            "thumbnail_url": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800",
+            "video_url": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+            "price": 29.99,
+            "duration": "1h 30m",
+            "category": "Test"
+        }
+        
+        success, video_response = self.run_test(
+            "Admin Create Video",
+            "POST",
+            "videos",
+            200,
+            data=video_data,
+            use_admin_token=True
+        )
+        
+        if success:
+            self.test_video_id = video_response.get('video_id')
+            print(f"   Created video ID: {self.test_video_id}")
+        
+        # Test admin create shop item
+        item_data = {
+            "name": "Test Admin Item",
+            "description": "Shop item created by admin for testing",
+            "price": 19.99,
+            "image_url": "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=800",
+            "category": "Test",
+            "stock": 10
+        }
+        
+        success, item_response = self.run_test(
+            "Admin Create Shop Item",
+            "POST",
+            "shop/items",
+            200,
+            data=item_data,
+            use_admin_token=True
+        )
+        
+        if success:
+            self.test_item_id = item_response.get('item_id')
+            print(f"   Created item ID: {self.test_item_id}")
+        
+        # Test admin create blog post
+        blog_data = {
+            "title": "Test Admin Blog Post",
+            "content": "This is a test blog post created by admin for testing purposes.",
+            "excerpt": "Test blog post excerpt",
+            "cover_image": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800",
+            "category": "Test"
+        }
+        
+        success, blog_response = self.run_test(
+            "Admin Create Blog Post",
+            "POST",
+            "blog",
+            200,
+            data=blog_data,
+            use_admin_token=True
+        )
+        
+        if success:
+            self.test_blog_id = blog_response.get('post_id')
+            print(f"   Created blog post ID: {self.test_blog_id}")
+
+    def test_non_admin_restrictions(self):
+        """Test that non-admin users cannot access admin endpoints"""
+        print("\n🚫 Testing non-admin user restrictions...")
+        
+        if not self.token:
+            self.log_test("Non-Admin Restriction Tests", False, "No regular user token available")
+            return False
+        
+        # Test regular user cannot create video (should get 403)
+        video_data = {
+            "title": "Unauthorized Video",
+            "description": "This should fail",
+            "thumbnail_url": "https://example.com/thumb.jpg",
+            "video_url": "https://example.com/video.mp4",
+            "price": 29.99,
+            "duration": "1h 30m",
+            "category": "Test"
+        }
+        
+        success, _ = self.run_test(
+            "Regular User Create Video (Should Fail)",
+            "POST",
+            "videos",
+            403,  # Should be forbidden
+            data=video_data
+        )
+        
+        # Test regular user cannot create shop item (should get 403)
+        item_data = {
+            "name": "Unauthorized Item",
+            "description": "This should fail",
+            "price": 19.99,
+            "image_url": "https://example.com/item.jpg",
+            "category": "Test",
+            "stock": 10
+        }
+        
+        success, _ = self.run_test(
+            "Regular User Create Shop Item (Should Fail)",
+            "POST",
+            "shop/items",
+            403,  # Should be forbidden
+            data=item_data
+        )
+        
+        # Test regular user cannot delete comments (should get 403)
+        success, _ = self.run_test(
+            "Regular User Delete Comment (Should Fail)",
+            "DELETE",
+            "comments/fake_comment_id",
+            403,  # Should be forbidden
+        )
         """Test user registration"""
         print("\n👤 Testing user registration...")
         
