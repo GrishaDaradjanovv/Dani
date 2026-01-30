@@ -346,6 +346,42 @@ class WellnessPlatformTester:
             "comments/fake_comment_id",
             403,  # Should be forbidden
         )
+
+    def test_user_registration(self):
+        """Test user registration"""
+        print("\n👤 Testing user registration...")
+        
+        timestamp = int(datetime.now().timestamp())
+        test_user = {
+            "name": f"Test User {timestamp}",
+            "email": f"test.user.{timestamp}@example.com",
+            "password": "testpass123"
+        }
+        
+        success, response = self.run_test(
+            "User Registration",
+            "POST",
+            "auth/register",
+            200,
+            data=test_user
+        )
+        
+        if success and 'token' in response:
+            self.token = response['token']
+            self.user_id = response['user']['user_id']
+            is_admin = response['user'].get('is_admin', False)
+            print(f"   Registered user: {response['user']['email']}")
+            print(f"   Is admin: {is_admin}")
+            
+            if not is_admin:
+                self.log_test("Regular User Status Check", True, "User correctly identified as non-admin")
+            else:
+                self.log_test("Regular User Status Check", False, "User incorrectly identified as admin")
+            
+            return True
+        else:
+            self.log_test("Registration Token Check", False, "No token in response")
+            return False
         """Test user registration"""
         print("\n👤 Testing user registration...")
         
