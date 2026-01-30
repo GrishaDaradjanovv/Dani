@@ -548,15 +548,28 @@ class WellnessPlatformTester:
         """Run all tests in sequence"""
         print("🚀 Starting Wellness Platform API Tests")
         print(f"Testing against: {self.base_url}")
+        print(f"Admin email: {self.admin_email}")
         
         # Seed data first
         self.test_seed_data()
         
-        # Test public endpoints
+        # Test public endpoints (including service pages and shop)
         self.test_public_endpoints()
         
-        # Test user registration
-        if self.test_user_registration():
+        # Test admin user registration
+        admin_registered = self.test_admin_registration()
+        
+        # Test regular user registration
+        regular_registered = self.test_user_registration()
+        
+        # Test admin endpoints if admin is registered
+        if admin_registered:
+            self.test_admin_endpoints()
+        
+        # Test non-admin restrictions if regular user is registered
+        if regular_registered:
+            self.test_non_admin_restrictions()
+            
             # Test authenticated endpoints
             self.test_authenticated_endpoints()
             
@@ -575,12 +588,20 @@ class WellnessPlatformTester:
         print(f"Tests passed: {self.tests_passed}")
         print(f"Success rate: {(self.tests_passed/self.tests_run*100):.1f}%")
         
+        # Print failed tests
+        failed_tests = [test for test in self.test_results if not test['success']]
+        if failed_tests:
+            print(f"\n❌ Failed Tests ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"   - {test['test']}: {test['details']}")
+        
         # Return results for further processing
         return {
             "total_tests": self.tests_run,
             "passed_tests": self.tests_passed,
             "success_rate": self.tests_passed/self.tests_run if self.tests_run > 0 else 0,
-            "test_results": self.test_results
+            "test_results": self.test_results,
+            "failed_tests": failed_tests
         }
 
 def main():
