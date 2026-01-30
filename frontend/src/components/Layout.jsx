@@ -121,8 +121,31 @@ export const Sidebar = ({ isOpen, onClose }) => {
   );
 };
 
-export const Navbar = ({ auth, onMenuClick }) => {
-  const navigate = (path) => window.location.href = path;
+export const Navbar = ({ auth, onMenuClick, cartCount = 0 }) => {
+  const [localCartCount, setLocalCartCount] = useState(cartCount);
+  
+  useEffect(() => {
+    if (auth.user) {
+      fetchCartCount();
+    }
+  }, [auth.user]);
+
+  const fetchCartCount = async () => {
+    try {
+      const headers = {};
+      if (auth.token) {
+        headers['Authorization'] = `Bearer ${auth.token}`;
+      }
+      const response = await fetch(`${API}/cart`, {
+        credentials: 'include',
+        headers
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setLocalCartCount(data.length);
+      }
+    } catch (e) {}
+  };
 
   const handleLogout = async () => {
     await auth.logout();
