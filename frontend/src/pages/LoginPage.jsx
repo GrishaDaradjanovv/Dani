@@ -86,7 +86,12 @@ const LoginPage = ({ auth }) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-deep-navy">Password</Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="password" className="text-deep-navy">Password</Label>
+                <Link to="/forgot-password" className="text-sm text-terracotta hover:underline" data-testid="forgot-password-link">
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-deep-navy/40" />
                 <Input
