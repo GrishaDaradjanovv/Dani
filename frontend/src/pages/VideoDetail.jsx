@@ -12,6 +12,7 @@ const VideoDetail = ({ auth }) => {
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
     fetchVideo();
