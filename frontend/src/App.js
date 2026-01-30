@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -12,6 +12,11 @@ import BlogPage from "@/pages/BlogPage";
 import BlogPostDetail from "@/pages/BlogPostDetail";
 import Dashboard from "@/pages/Dashboard";
 import PaymentSuccess from "@/pages/PaymentSuccess";
+import ShopPage from "@/pages/ShopPage";
+import ShopItemDetail from "@/pages/ShopItemDetail";
+import ShopOrderSuccess from "@/pages/ShopOrderSuccess";
+import ServicePage from "@/pages/ServicePage";
+import AdminPanel from "@/pages/AdminPanel";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -92,6 +97,29 @@ const ProtectedRoute = ({ children, auth }) => {
   return children;
 };
 
+// Admin Route wrapper
+const AdminRoute = ({ children, auth }) => {
+  const location = useLocation();
+  
+  if (auth.loading) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center">
+        <div className="animate-pulse text-deep-navy">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!auth.user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (!auth.user.is_admin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
 function AppRouter() {
   const location = useLocation();
   const auth = useAuth();
@@ -110,6 +138,19 @@ function AppRouter() {
       <Route path="/videos/:videoId" element={<VideoDetail auth={auth} />} />
       <Route path="/blog" element={<BlogPage auth={auth} />} />
       <Route path="/blog/:postId" element={<BlogPostDetail auth={auth} />} />
+      <Route path="/shop" element={<ShopPage auth={auth} />} />
+      <Route path="/shop/:itemId" element={<ShopItemDetail auth={auth} />} />
+      <Route path="/shop/order-success" element={
+        <ProtectedRoute auth={auth}>
+          <ShopOrderSuccess auth={auth} />
+        </ProtectedRoute>
+      } />
+      {/* Service Pages */}
+      <Route path="/services/speech-therapist" element={<ServicePage auth={auth} pageId="speech-therapist" />} />
+      <Route path="/services/womens-circle-rose" element={<ServicePage auth={auth} pageId="womens-circle-rose" />} />
+      <Route path="/services/bio" element={<ServicePage auth={auth} pageId="bio" />} />
+      <Route path="/services/bach-flowers" element={<ServicePage auth={auth} pageId="bach-flowers" />} />
+      <Route path="/services/psychology" element={<ServicePage auth={auth} pageId="psychology" />} />
       <Route path="/dashboard" element={
         <ProtectedRoute auth={auth}>
           <Dashboard auth={auth} />
@@ -119,6 +160,11 @@ function AppRouter() {
         <ProtectedRoute auth={auth}>
           <PaymentSuccess auth={auth} />
         </ProtectedRoute>
+      } />
+      <Route path="/admin" element={
+        <AdminRoute auth={auth}>
+          <AdminPanel auth={auth} />
+        </AdminRoute>
       } />
     </Routes>
   );
