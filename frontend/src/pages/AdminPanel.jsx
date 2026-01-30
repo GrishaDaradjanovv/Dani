@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Video, ShoppingBag, BookOpen, MessageCircle, Package, Trash2, Plus, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Video, ShoppingBag, BookOpen, MessageCircle, Package, Trash2, Plus, X, Upload, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,12 @@ const AdminPanel = ({ auth }) => {
   const [showVideoForm, setShowVideoForm] = useState(false);
   const [showItemForm, setShowItemForm] = useState(false);
   const [showBlogForm, setShowBlogForm] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  
+  const videoInputRef = useRef(null);
+  const thumbnailInputRef = useRef(null);
   
   const [videoForm, setVideoForm] = useState({
     title: '', description: '', thumbnail_url: '', video_url: '', price: '', duration: '', category: ''
