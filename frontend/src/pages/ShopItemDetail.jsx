@@ -15,6 +15,7 @@ const ShopItemDetail = ({ auth }) => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [shippingAddress, setShippingAddress] = useState({
     full_name: '',
