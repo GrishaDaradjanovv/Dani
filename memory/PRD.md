@@ -75,6 +75,13 @@ Create a website for mental/self-improvement care where users can upload videos 
 7. **Sidebar Navigation** - 5 service pages
 8. **Service Pages** - Dynamic content pages
 
+### Phase 3 - Enhanced Features
+1. **Password Reset** - Via Resend email service
+2. **Cloudinary Integration** - Video/image upload to cloud storage
+3. **Unified Shopping Cart** - Supports both videos and shop items
+4. **Cart Management** - Add/remove items, update quantities
+5. **Mixed Checkout** - Combined video + physical product purchase
+
 ### Design System
 - Colors: Cream (#F4F1DE), Terracotta (#E07A5F), Sage (#81B29A), Sun (#F2CC8F), Deep Navy (#3D405B)
 - Fonts: Fraunces (headings), Manrope (body)
