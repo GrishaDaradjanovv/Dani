@@ -256,14 +256,25 @@ const BlogPostDetail = ({ auth }) => {
                   className="bg-white rounded-2xl p-6 shadow-md shadow-deep-navy/5"
                   data-testid={`comment-${index}`}
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-sage/20 flex items-center justify-center text-sage font-medium">
-                      {comment.user_name?.charAt(0).toUpperCase()}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-sage/20 flex items-center justify-center text-sage font-medium">
+                        {comment.user_name?.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-medium text-deep-navy">{comment.user_name}</p>
+                        <p className="text-xs text-deep-navy/50">{formatDate(comment.created_at)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-deep-navy">{comment.user_name}</p>
-                      <p className="text-xs text-deep-navy/50">{formatDate(comment.created_at)}</p>
-                    </div>
+                    {auth.user?.is_admin && (
+                      <button 
+                        onClick={() => handleDeleteComment(comment.comment_id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        data-testid={`delete-comment-${index}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                   <p className="text-deep-navy/70 leading-relaxed">{comment.content}</p>
                 </div>
