@@ -31,13 +31,20 @@ class WellnessPlatformTester:
             "details": details
         })
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None, use_admin_token=False):
         """Run a single API test"""
         url = f"{self.api_url}/{endpoint}"
         test_headers = {'Content-Type': 'application/json'}
         
-        if self.token:
-            test_headers['Authorization'] = f'Bearer {self.token}'
+        # Choose which token to use
+        token_to_use = None
+        if use_admin_token and self.admin_token:
+            token_to_use = self.admin_token
+        elif self.token:
+            token_to_use = self.token
+            
+        if token_to_use:
+            test_headers['Authorization'] = f'Bearer {token_to_use}'
         
         if headers:
             test_headers.update(headers)
