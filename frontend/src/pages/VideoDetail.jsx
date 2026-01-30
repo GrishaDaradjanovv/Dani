@@ -269,9 +269,19 @@ const VideoDetail = ({ auth }) => {
                     ) : (
                       <>
                         <ShoppingCart className="w-5 h-5 mr-2" />
-                        Purchase Course
+                        Buy Now
                       </>
                     )}
+                  </Button>
+
+                  <Button
+                    onClick={handleAddToCart}
+                    disabled={addingToCart}
+                    variant="outline"
+                    className="w-full rounded-full py-6 text-lg border-terracotta text-terracotta hover:bg-terracotta/10"
+                    data-testid="add-to-cart-btn"
+                  >
+                    {addingToCart ? 'Adding...' : 'Add to Cart'}
                   </Button>
 
                   {!auth.user && (
