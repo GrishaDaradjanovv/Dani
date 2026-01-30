@@ -94,6 +94,45 @@ const ShopItemDetail = ({ auth }) => {
     }
   };
 
+  const handleAddToCart = async () => {
+    if (!auth.user) {
+      toast.error('Please log in to add to cart');
+      navigate('/login');
+      return;
+    }
+
+    setAddingToCart(true);
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (auth.token) {
+        headers['Authorization'] = `Bearer ${auth.token}`;
+      }
+      
+      const response = await fetch(`${API}/cart/add`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          item_type: 'shop',
+          item_id: itemId,
+          quantity: quantity
+        }),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Failed to add to cart');
+      }
+
+      toast.success('Added to cart!');
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
   if (loading) {
     return (
       <Layout auth={auth}>
