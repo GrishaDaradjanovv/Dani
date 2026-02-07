@@ -130,11 +130,11 @@ const RegisterPage = ({ auth }) => {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="pl-10 py-6 rounded-xl bg-white border-border focus:ring-terracotta"
                   required
-                  minLength={6}
+                  minLength={8}
                   data-testid="register-password-input"
                 />
               </div>
-              <p className="text-xs text-deep-navy/50">Must be at least 6 characters</p>
+              <p className="text-xs text-deep-navy/50">Min 8 characters with at least 1 uppercase letter</p>
             </div>
 
             <Button
