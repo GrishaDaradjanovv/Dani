@@ -228,6 +228,14 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
+def validate_password(password: str) -> tuple[bool, str]:
+    """Validate password: minimum 8 characters with at least 1 uppercase letter"""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long"
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least one uppercase letter"
+    return True, ""
+
 def create_jwt_token(user_id: str, email: str) -> str:
     payload = {
         "user_id": user_id,
