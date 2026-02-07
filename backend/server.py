@@ -302,6 +302,11 @@ async def require_admin(request: Request, credentials=Depends(security)) -> dict
 
 @api_router.post("/auth/register", response_model=dict)
 async def register(user_data: UserCreate):
+    # Validate password
+    is_valid, error_msg = validate_password(user_data.password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_msg)
+    
     existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
