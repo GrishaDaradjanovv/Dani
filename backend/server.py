@@ -497,6 +497,11 @@ async def forgot_password(data: PasswordResetRequest, request: Request):
 
 @api_router.post("/auth/reset-password")
 async def reset_password(data: PasswordResetConfirm):
+    # Validate new password
+    is_valid, error_msg = validate_password(data.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_msg)
+    
     reset = await db.password_resets.find_one({"token": data.token, "used": False}, {"_id": 0})
     if not reset:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
